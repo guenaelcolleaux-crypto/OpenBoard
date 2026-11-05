@@ -465,6 +465,11 @@ signals:
 
         bool mInputDeviceIsPressed;
 
+        // Straight strokes with the pen or the marker:
+        // Shift = horizontal or vertical, Ctrl = any angle
+        bool mStraightLineMode = false;
+        QPointF constrainStraightLine(const QPointF& start, const QPointF& end, Qt::KeyboardModifiers modifiers) const;
+
         QSet<QGraphicsItem*> mTools;
 
         UBGraphicsPolygonItem *mArcPolygonItem;

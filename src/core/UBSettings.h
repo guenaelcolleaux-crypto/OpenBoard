@@ -130,6 +130,7 @@ class UBSettings : public QObject
         void setLibraryIconsize(const int& size);
 
         void init();
+        void fixPortablePaths();
 
         //user directories
         static QString userDataDirectory();
@@ -144,6 +145,8 @@ class UBSettings : public QObject
         static QString userInteractiveDirectory();
         static QString userInteractiveFavoritesDirectory();
         static QString userPodcastRecordingDirectory();
+        static QString userUbzDirectory();
+        static bool isPortable();
 
         QString userGipLibraryDirectory();
 

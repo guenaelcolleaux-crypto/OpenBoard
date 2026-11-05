@@ -190,6 +190,85 @@ UBSettings::UBSettings(QObject *parent)
     mUserSettings = new QSettings(userSettingsFile, QSettings::IniFormat, parent);
 
     init();
+
+    if (isPortable())
+        fixPortablePaths();
+}
+
+bool UBSettings::isPortable()
+{
+    return getAppSettings() && getAppSettings()->value("App/PortableMode", false).toBool();
+}
+
+QString UBSettings::userUbzDirectory()
+{
+    static QString ubzDirectory = "";
+    if (ubzDirectory.isEmpty()) {
+        QString dirPath = getAppSettings() ? getAppSettings()->value("App/UBZDirectory").toString() : QString();
+
+        if (dirPath.isEmpty())
+            dirPath = isPortable() ? QString("{App}/Documents UBZ")
+                                   : QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+        dirPath = replaceWildcard(dirPath);
+
+        if (checkDirectory(dirPath))
+            ubzDirectory = dirPath;
+        else {
+            qCritical() << "failed to create UBZ directory " << dirPath;
+            ubzDirectory = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+        }
+    }
+    return ubzDirectory;
+}
+
+/**
+ * @brief In portable mode, keeps the remembered folders usable when the USB key
+ * gets a different drive letter on another computer, and makes the import/export
+ * dialogs for UBZ files open in the UBZ folder of the key.
+ */
+void UBSettings::fixPortablePaths()
+{
+    const QString appRoot = QDir(QCoreApplication::applicationDirPath()).rootPath();
+    const QString previousRoot = value("Portable/LastAppRoot", QString()).toString();
+    const QString ubzDir = userUbzDirectory();
+
+    // Remaps a path that was on the key (old drive letter) to the current drive letter.
+    auto remap = [&](const QString& path) -> QString {
+        if (!previousRoot.isEmpty() && previousRoot != appRoot
+                && path.startsWith(previousRoot, Qt::CaseInsensitive))
+            return appRoot + path.mid(previousRoot.length());
+        return path;
+    };
+
+    // Import/export of UBZ documents: stay on the key, in the UBZ folder by default.
+    const QList<UBSetting*> ubzPaths = { lastImportFilePath, lastImportFolderPath,
+                                         lastExportFilePath, lastExportDirPath };
+
+    for (UBSetting* setting : ubzPaths) {
+        QString path = remap(setting->get().toString());
+        const bool onKey = path.startsWith(appRoot, Qt::CaseInsensitive);
+
+        if (path.isEmpty() || !onKey || !QDir(path).exists())
+            path = ubzDir;
+
+        setting->set(path);
+    }
+
+    // Library folders: only follow the drive letter of the key, otherwise fall back to the default.
+    const QList<UBSetting*> libraryPaths = { lastImportToLibraryPath, lastPicturePath,
+                                             lastWidgetPath, lastVideoPath };
+
+    for (UBSetting* setting : libraryPaths) {
+        const QString path = remap(setting->get().toString());
+
+        if (path.isEmpty() || !QDir(path).exists())
+            setting->reset();
+        else
+            setting->set(path);
+    }
+
+    setValue("Portable/LastAppRoot", appRoot);
 }
 
 
@@ -1439,6 +1518,11 @@ QString UBSettings::replaceWildcard(QString& path)
     }
     else if(result.startsWith("{Desktop}")) {
         result = result.replace("{Desktop}", QStandardPaths::writableLocation(QStandardPaths::DesktopLocation));
+    }
+    else if(result.startsWith("{App}")) {
+        // Portable mode: path relative to the folder containing the executable,
+        // so that it follows the USB key whatever its drive letter is.
+        result = result.replace("{App}", QCoreApplication::applicationDirPath());
     }
 
     if(result.contains("{UserLoginName}") && UBPlatformUtils::osUserLoginName().length() > 0) {

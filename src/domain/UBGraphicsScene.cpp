@@ -436,7 +436,13 @@ bool UBGraphicsScene::inputDevicePress(const QPointF& scenePos, const qreal& pre
             // ---------------------------------------------------------------
             mCurrentStroke = new UBGraphicsStroke(shared_from_this());
 
-            if (currentTool != UBStylusTool::Line){
+            // Shift or Ctrl held when starting to write with the pen or the marker:
+            // the stroke becomes a straight line (see constrainStraightLine)
+            mStraightLineMode = (currentTool == UBStylusTool::Pen || currentTool == UBStylusTool::Marker)
+                    && (modifiers & (Qt::ShiftModifier | Qt::ControlModifier))
+                    && !UBDrawingController::drawingController()->activeRuler();
+
+            if (currentTool != UBStylusTool::Line && !mStraightLineMode){
                 // Handle the pressure
                 width = UBDrawingController::drawingController()->currentToolWidth() * pressure;
             }
@@ -463,7 +469,7 @@ bool UBGraphicsScene::inputDevicePress(const QPointF& scenePos, const qreal& pre
                 }
 
                 moveTo(pos);
-                drawLineTo(pos, width, isLine);
+                drawLineTo(pos, width, isLine || mStraightLineMode);
 
                 mCurrentStroke->addPoint(pos, width);
             }
@@ -537,7 +543,7 @@ bool UBGraphicsScene::inputDeviceMove(const QPointF& scenePos, const qreal& pres
         {
             qreal width = 0;
 
-            if (currentTool != UBStylusTool::Line){
+            if (currentTool != UBStylusTool::Line && !mStraightLineMode){
                 // Handle the pressure
                 width = dc->currentToolWidth() * qMax(pressure, 0.2);
             }else{
@@ -550,9 +556,9 @@ bool UBGraphicsScene::inputDeviceMove(const QPointF& scenePos, const qreal& pres
 
             std::optional<QPointF> altPosition;
 
-            if (currentTool == UBStylusTool::Line || dc->activeRuler())
+            if (currentTool == UBStylusTool::Line || dc->activeRuler() || mStraightLineMode)
             {
-                if (UBDrawingController::drawingController()->stylusTool() != UBStylusTool::Marker)
+                if (UBDrawingController::drawingController()->stylusTool() != UBStylusTool::Marker || mStraightLineMode)
                 if(NULL != mpLastPolygon && NULL != mCurrentStroke && mAddedItems.size() > 0){
                     UBCoreGraphicsScene::removeItemFromDeletion(mpLastPolygon);
                     mAddedItems.remove(mpLastPolygon);
@@ -616,6 +622,12 @@ bool UBGraphicsScene::inputDeviceMove(const QPointF& scenePos, const qreal& pres
                 offset += viewRadius.p2().toPoint();
                 UBApplication::boardController->setCursorFromAngle(angle, offset);
 
+                drawLineTo(position, width, true);
+            }
+
+            else if (mStraightLineMode) {
+                // mPreviousPoint stays at the starting point of the stroke
+                position = constrainStraightLine(mPreviousPoint, position, modifiers);
                 drawLineTo(position, width, true);
             }
 
@@ -742,9 +754,10 @@ bool UBGraphicsScene::inputDeviceRelease(int tool, Qt::KeyboardModifiers modifie
                 addPolygonItemToCurrentStroke(poly);
             }
 
-            // replace the stroke by a simplified version of it
-            if ((currentTool == UBStylusTool::Pen && UBSettings::settings()->boardSimplifyPenStrokes->get().toBool())
-                || (currentTool == UBStylusTool::Marker && UBSettings::settings()->boardSimplifyMarkerStrokes->get().toBool()))
+            // replace the stroke by a simplified version of it (not for straight lines)
+            if (!mStraightLineMode
+                && ((currentTool == UBStylusTool::Pen && UBSettings::settings()->boardSimplifyPenStrokes->get().toBool())
+                    || (currentTool == UBStylusTool::Marker && UBSettings::settings()->boardSimplifyMarkerStrokes->get().toBool())))
             {
                 simplifyCurrentStroke();
             }
@@ -791,6 +804,7 @@ bool UBGraphicsScene::inputDeviceRelease(int tool, Qt::KeyboardModifiers modifie
     }
 
     mInputDeviceIsPressed = false;
+    mStraightLineMode = false;
 
     setDocumentUpdated();
 
@@ -941,6 +955,21 @@ void UBGraphicsScene::DisposeMagnifierQWidgets()
     {
     }
 
+}
+
+QPointF UBGraphicsScene::constrainStraightLine(const QPointF& start, const QPointF& end, Qt::KeyboardModifiers modifiers) const
+{
+    if (modifiers & Qt::ShiftModifier)
+    {
+        // horizontal or vertical, depending on the main direction of the movement
+        if (qAbs(end.x() - start.x()) >= qAbs(end.y() - start.y()))
+            return QPointF(end.x(), start.y());
+        else
+            return QPointF(start.x(), end.y());
+    }
+
+    // Ctrl (or key released while drawing): straight line with any angle
+    return end;
 }
 
 void UBGraphicsScene::moveTo(const QPointF &pPoint)

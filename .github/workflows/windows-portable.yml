@@ -1,0 +1,88 @@
+name: OpenBoard portable (Windows)
+
+# Builds the portable version of OpenBoard (to run from a USB key)
+# and publishes it as a zip file in the "Artifacts" of each run.
+
+on:
+  push:
+    branches: [ portable ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+
+    steps:
+      - name: Get OpenBoard sources
+        uses: actions/checkout@v4
+        with:
+          path: OpenBoard
+
+      - name: Get third-party libraries (poppler, openssl, quazip)
+        shell: bash
+        run: git clone --depth 1 https://github.com/OpenBoard-org/OpenBoard-ThirdParty.git
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.3'
+          host: windows
+          target: desktop
+          arch: win64_msvc2022_64
+          modules: 'qt5compat qtwebengine qtwebchannel qtpositioning qtmultimedia qtimageformats qtactiveqt'
+          cache: true
+
+      - name: Set up the Visual Studio compiler
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build OpenBoard
+        working-directory: OpenBoard
+        shell: cmd
+        run: |
+          qmake OpenBoard.pro
+          lrelease OpenBoard.pro
+          nmake release-install
+
+      - name: Assemble the portable folder
+        shell: pwsh
+        run: |
+          $product = "OpenBoard/build/win32/release/product"
+          if (!(Test-Path "$product/OpenBoard.exe")) { throw "OpenBoard.exe was not built" }
+
+          $out = "OpenBoard-Portable"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          Copy-Item -Recurse "$product/*" $out
+
+          # Qt libraries and plugins
+          windeployqt --release --no-compiler-runtime --no-translations "$out/OpenBoard.exe"
+
+          # Third-party libraries
+          Copy-Item "OpenBoard-ThirdParty/poppler/bin/*.dll" $out
+          Copy-Item "OpenBoard-ThirdParty/openssl/openssl-3.0.15-win64/bin/*.dll" $out
+
+          # Visual C++ runtime next to the executable (no installation needed on the PC)
+          Copy-Item "$env:VCToolsRedistDir/x64/Microsoft.VC143.CRT/*.dll" $out
+
+          # Resources normally added by the installer
+          New-Item -ItemType Directory -Force "$out/customizations", "$out/startupHints", "$out/i18n" | Out-Null
+          Copy-Item -Recurse "OpenBoard/resources/customizations/*" "$out/customizations"
+          Copy-Item -Recurse "OpenBoard/resources/startupHints/*" "$out/startupHints"
+          Copy-Item "$env:QT_ROOT_DIR/translations/qt_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
+          Copy-Item "$env:QT_ROOT_DIR/translations/qtbase_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
+
+          # Folders kept on the USB key
+          New-Item -ItemType Directory -Force "$out/data", "$out/Documents UBZ" | Out-Null
+
+          # Remove build leftovers
+          Get-ChildItem $out -Recurse -Include *.pdb, *.ilk, *.exp, *.lib | Remove-Item -Force
+
+          Get-ChildItem $out | Format-Table Name, Length
+
+      - name: Publish the portable folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenBoard-Portable
+          path: OpenBoard-Portable
+          retention-days: 30
