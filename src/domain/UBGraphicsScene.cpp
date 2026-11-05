@@ -28,6 +28,9 @@
 
 
 #include "UBGraphicsScene.h"
+#include "UBShapeRecognizer.h"
+
+#include <QTimer>
 
 #include <QtGui>
 #include <QtSvg>
@@ -472,6 +475,28 @@ bool UBGraphicsScene::inputDevicePress(const QPointF& scenePos, const qreal& pre
                 drawLineTo(pos, width, isLine || mStraightLineMode);
 
                 mCurrentStroke->addPoint(pos, width);
+
+                // shape recognition, for freehand pen strokes
+                mShapeRecognized = false;
+                mShapePoints.clear();
+
+                if (currentTool == UBStylusTool::Pen && !mStraightLineMode)
+                {
+                    if (!mShapeHoldTimer)
+                    {
+                        mShapeHoldTimer = new QTimer(this);
+                        mShapeHoldTimer->setSingleShot(true);
+                        mShapeHoldTimer->setInterval(500);
+                        connect(mShapeHoldTimer, &QTimer::timeout, this, [this]() { recognizeShape(); });
+                    }
+
+                    mShapePoints << pos;
+                    mShapeHoldAnchor = pos;
+                    mShapeWidth = UBDrawingController::drawingController()->currentToolWidth()
+                            / UBApplication::boardController->systemScaleFactor()
+                            / UBApplication::boardController->currentZoom();
+                    mShapeHoldTimer->start();
+                }
             }
             accepted = true;
         }
@@ -534,6 +559,24 @@ bool UBGraphicsScene::inputDeviceMove(const QPointF& scenePos, const qreal& pres
         else {
             drawPenCircle(position);
             accepted = true;
+        }
+    }
+
+    if (mInputDeviceIsPressed && mShapeRecognized)
+        return true;
+
+    if (mInputDeviceIsPressed && mShapeHoldTimer && !mShapePoints.isEmpty())
+    {
+        mShapePoints << position;
+
+        // the pen moved: wait again for it to stay still
+        const qreal viewDistance = QLineF(position, mShapeHoldAnchor).length()
+                * UBApplication::boardController->systemScaleFactor() * UBApplication::boardController->currentZoom();
+
+        if (viewDistance > 6)
+        {
+            mShapeHoldAnchor = position;
+            mShapeHoldTimer->start();
         }
     }
 
@@ -754,8 +797,8 @@ bool UBGraphicsScene::inputDeviceRelease(int tool, Qt::KeyboardModifiers modifie
                 addPolygonItemToCurrentStroke(poly);
             }
 
-            // replace the stroke by a simplified version of it (not for straight lines)
-            if (!mStraightLineMode
+            // replace the stroke by a simplified version of it (not for straight lines and shapes)
+            if (!mStraightLineMode && !mShapeRecognized
                 && ((currentTool == UBStylusTool::Pen && UBSettings::settings()->boardSimplifyPenStrokes->get().toBool())
                     || (currentTool == UBStylusTool::Marker && UBSettings::settings()->boardSimplifyMarkerStrokes->get().toBool())))
             {
@@ -805,6 +848,10 @@ bool UBGraphicsScene::inputDeviceRelease(int tool, Qt::KeyboardModifiers modifie
 
     mInputDeviceIsPressed = false;
     mStraightLineMode = false;
+    mShapeRecognized = false;
+    mShapePoints.clear();
+    if (mShapeHoldTimer)
+        mShapeHoldTimer->stop();
 
     setDocumentUpdated();
 
@@ -955,6 +1002,68 @@ void UBGraphicsScene::DisposeMagnifierQWidgets()
     {
     }
 
+}
+
+void UBGraphicsScene::removeCurrentStrokePolygons(const QList<UBGraphicsPolygonItem*>& polygons)
+{
+    // N.B. a polygon deletes its stroke when it is the last one of it: the new
+    // polygons must be added to the stroke before the old ones are deleted.
+    for (UBGraphicsPolygonItem* polygon : polygons)
+    {
+        mAddedItems.remove(polygon);
+        mPreviousPolygonItems.removeAll(polygon);
+
+        if (mpLastPolygon == polygon)
+            mpLastPolygon = NULL;
+
+        UBCoreGraphicsScene::removeItemFromDeletion(polygon);
+        removeItem(polygon);
+        delete polygon;
+    }
+}
+
+void UBGraphicsScene::recognizeShape()
+{
+    if (!mInputDeviceIsPressed || mShapeRecognized || !mCurrentStroke || mShapePoints.size() < 8
+            || UBDrawingController::drawingController()->stylusTool() != UBStylusTool::Pen)
+        return;
+
+    // the drawing must be at least 30 pixels wide on screen
+    const qreal minSize = 30. / (UBApplication::boardController->systemScaleFactor() * UBApplication::boardController->currentZoom());
+
+    const UBShapeRecognizer::Shape shape = UBShapeRecognizer::recognize(mShapePoints, minSize);
+
+    if (shape.type == UBShapeRecognizer::Shape::None)
+        return;
+
+    QList<UBGraphicsPolygonItem*> oldPolygons = mCurrentStroke->polygons();
+
+    if (mTempPolygon)
+    {
+        oldPolygons << mTempPolygon;
+        mTempPolygon = NULL;
+    }
+
+    const QList<QPointF> outline = shape.outline();
+
+    if (shape.type == UBShapeRecognizer::Shape::Circle || shape.type == UBShapeRecognizer::Shape::Ellipse)
+    {
+        // two smooth halves (a single closed curve would leave a hole where its
+        // round ends overlap, because of the fill rule of the polygons)
+        const int half = outline.size() / 2;
+        addPolygonItemToCurrentStroke(curveToPolygonItem(outline.mid(0, half + 1), mShapeWidth, mShapeWidth));
+        addPolygonItemToCurrentStroke(curveToPolygonItem(outline.mid(half), mShapeWidth, mShapeWidth));
+    }
+    else
+    {
+        // one segment per side, the round ends make clean corners
+        for (int i = 0; i + 1 < outline.size(); ++i)
+            addPolygonItemToCurrentStroke(lineToPolygonItem(QLineF(outline[i], outline[i + 1]), mShapeWidth, mShapeWidth));
+    }
+
+    removeCurrentStrokePolygons(oldPolygons);
+
+    mShapeRecognized = true;
 }
 
 QPointF UBGraphicsScene::constrainStraightLine(const QPointF& start, const QPointF& end, Qt::KeyboardModifiers modifiers) const

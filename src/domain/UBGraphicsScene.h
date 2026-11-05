@@ -470,6 +470,16 @@ signals:
         bool mStraightLineMode = false;
         QPointF constrainStraightLine(const QPointF& start, const QPointF& end, Qt::KeyboardModifiers modifiers) const;
 
+        // Shape recognition: keeping the pen still for a moment at the end of a
+        // stroke turns a hand-drawn circle, ellipse, triangle or quadrilateral into a clean shape
+        QTimer* mShapeHoldTimer = nullptr;
+        QList<QPointF> mShapePoints;
+        QPointF mShapeHoldAnchor;
+        qreal mShapeWidth = 0;
+        bool mShapeRecognized = false;
+        void recognizeShape();
+        void removeCurrentStrokePolygons(const QList<UBGraphicsPolygonItem*>& polygons);
+
         QSet<QGraphicsItem*> mTools;
 
         UBGraphicsPolygonItem *mArcPolygonItem;

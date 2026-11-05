@@ -26,6 +26,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     UBGraphicsPolygonItem.cpp
     UBGraphicsPolygonItem.h
     UBGraphicsScene.cpp
+    UBShapeRecognizer.cpp
+    UBShapeRecognizer.h
     UBGraphicsScene.h
     UBGraphicsStroke.cpp
     UBGraphicsStroke.h
