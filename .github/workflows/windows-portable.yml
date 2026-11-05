@@ -37,6 +37,14 @@ jobs:
         with:
           arch: x64
 
+      - name: Build QuaZIP (zip library used by OpenBoard)
+        working-directory: OpenBoard-ThirdParty/quazip
+        shell: cmd
+        run: |
+          qmake quazip.pro
+          nmake release
+          dir lib\win32\release
+
       - name: Build OpenBoard
         working-directory: OpenBoard
         shell: cmd
