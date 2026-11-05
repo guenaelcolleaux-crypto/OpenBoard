@@ -196,6 +196,12 @@ UBSettings::UBSettings(QObject *parent)
         fixPortablePaths();
 }
 
+QString UBSettings::forcedLanguage()
+{
+    // read directly from the application config file, without creating the settings object
+    return getAppSettings() ? getAppSettings()->value("App/ForcedLanguage").toString() : QString();
+}
+
 bool UBSettings::isPortable()
 {
     return getAppSettings() && getAppSettings()->value("App/PortableMode", false).toBool();

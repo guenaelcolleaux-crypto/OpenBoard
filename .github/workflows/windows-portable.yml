@@ -49,8 +49,8 @@ jobs:
         working-directory: OpenBoard
         shell: cmd
         run: |
-          qmake OpenBoard.pro
           lrelease OpenBoard.pro
+          qmake OpenBoard.pro
           nmake release-install
 
       - name: Assemble the portable folder
@@ -82,6 +82,8 @@ jobs:
           # French dictionary for the spell checker
           New-Item -ItemType Directory -Force "$out/dictionaries" | Out-Null
           Copy-Item "OpenBoard/resources/dictionaries/*" "$out/dictionaries"
+          Copy-Item "OpenBoard/resources/i18n/*.qm" "$out/i18n"
+          if (!(Test-Path "$out/i18n/OpenBoard_fr.qm")) { throw "French translation missing" }
           Copy-Item "$env:QT_ROOT_DIR/translations/qt_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
           Copy-Item "$env:QT_ROOT_DIR/translations/qtbase_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
 

@@ -218,6 +218,8 @@ void UBApplication::setupTranslators(QStringList args)
     QString forcedLanguage("");
     if(args.contains("-lang"))
         forcedLanguage=args.at(args.indexOf("-lang") + 1);
+    else
+        forcedLanguage = UBSettings::forcedLanguage(); // e.g. "fr" in the portable version
 // TODO claudio: this has been commented because some of the translation seem to be loaded at this time
 //               especially tools name. This is a workaround and we have to be able to load settings without
 //               impacting the translations
