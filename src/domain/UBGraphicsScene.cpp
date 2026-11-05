@@ -476,11 +476,11 @@ bool UBGraphicsScene::inputDevicePress(const QPointF& scenePos, const qreal& pre
 
                 mCurrentStroke->addPoint(pos, width);
 
-                // shape recognition, for freehand pen strokes
+                // shape recognition, for freehand pen and marker strokes
                 mShapeRecognized = false;
                 mShapePoints.clear();
 
-                if (currentTool == UBStylusTool::Pen && !mStraightLineMode)
+                if ((currentTool == UBStylusTool::Pen || currentTool == UBStylusTool::Marker) && !mStraightLineMode)
                 {
                     if (!mShapeHoldTimer)
                     {
@@ -1025,7 +1025,8 @@ void UBGraphicsScene::removeCurrentStrokePolygons(const QList<UBGraphicsPolygonI
 void UBGraphicsScene::recognizeShape()
 {
     if (!mInputDeviceIsPressed || mShapeRecognized || !mCurrentStroke || mShapePoints.size() < 8
-            || UBDrawingController::drawingController()->stylusTool() != UBStylusTool::Pen)
+            || (UBDrawingController::drawingController()->stylusTool() != UBStylusTool::Pen
+                && UBDrawingController::drawingController()->stylusTool() != UBStylusTool::Marker))
         return;
 
     // the drawing must be at least 30 pixels wide on screen
@@ -1043,6 +1044,11 @@ void UBGraphicsScene::recognizeShape()
         oldPolygons << mTempPolygon;
         mTempPolygon = NULL;
     }
+
+    // the marker is transparent: each new polygon is cut where it overlaps the previous
+    // ones of the stroke, which must therefore not include the hand-drawn polygons
+    for (UBGraphicsPolygonItem* polygon : oldPolygons)
+        mPreviousPolygonItems.removeAll(polygon);
 
     const QList<QPointF> outline = shape.outline();
 
