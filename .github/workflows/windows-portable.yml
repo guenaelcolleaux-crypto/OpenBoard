@@ -1,12 +1,16 @@
 name: OpenBoard portable (Windows)
 
 # Builds the portable version of OpenBoard (to run from a USB key)
-# and publishes it as a zip file in the "Artifacts" of each run.
+# and publishes it as OpenBoard-Portable.zip in the "Releases" of the repository:
+# https://github.com/<owner>/OpenBoard/releases/latest/download/OpenBoard-Portable.zip
 
 on:
   push:
     branches: [ portable ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -114,9 +118,17 @@ jobs:
           if ($missing.Count -gt 0) { $missing | Sort-Object -Unique | ForEach-Object { Write-Host "MISSING: $_" }; throw "Missing DLLs" }
           Write-Host "All DLL dependencies are present."
 
-      - name: Publish the portable folder
-        uses: actions/upload-artifact@v4
+      - name: Zip the portable folder
+        shell: pwsh
+        run: 7z a -tzip -mx=5 OpenBoard-Portable.zip OpenBoard-Portable
+
+      - name: Publish the zip as a release (direct download link)
+        uses: softprops/action-gh-release@v2
         with:
-          name: OpenBoard-Portable
-          path: OpenBoard-Portable
-          retention-days: 30
+          tag_name: portable-${{ github.run_number }}
+          name: OpenBoard portable n°${{ github.run_number }}
+          body: |
+            Version portable d'OpenBoard (Windows), à décompresser sur une clé USB.
+            Pour mettre à jour : décompresser par-dessus l'ancien dossier, les dossiers data et Documents UBZ sont conservés.
+          files: OpenBoard-Portable.zip
+          make_latest: true
