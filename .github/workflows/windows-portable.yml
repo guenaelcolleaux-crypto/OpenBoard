@@ -77,6 +77,10 @@ jobs:
           New-Item -ItemType Directory -Force "$out/customizations", "$out/startupHints", "$out/i18n" | Out-Null
           Copy-Item -Recurse "OpenBoard/resources/customizations/*" "$out/customizations"
           Copy-Item -Recurse "OpenBoard/resources/startupHints/*" "$out/startupHints"
+
+          # French dictionary for the spell checker
+          New-Item -ItemType Directory -Force "$out/dictionaries" | Out-Null
+          Copy-Item "OpenBoard/resources/dictionaries/*" "$out/dictionaries"
           Copy-Item "$env:QT_ROOT_DIR/translations/qt_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
           Copy-Item "$env:QT_ROOT_DIR/translations/qtbase_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
 

@@ -98,6 +98,7 @@ class UBSettings : public QObject
 
         // Text related
         QString fontFamily();
+        QColor textDefaultColor();
         void setFontFamily(const QString &family);
         QString fontStyleName();
         void setFontStyleName(const QString &family);
@@ -201,6 +202,7 @@ class UBSettings : public QObject
         static bool intermediateLines;
 
         static int colorPaletteSize;
+        static int markerPaletteSize;
         static int objectFrameWidth;
 
         static QString documentGroupName;

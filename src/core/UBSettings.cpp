@@ -51,7 +51,8 @@ int UBSettings::defaultCrossSize = 24;
 int UBSettings::minCrossSize = 12;
 int UBSettings::maxCrossSize = 96; //TODO: user-settable?
 bool UBSettings::intermediateLines = false;
-int UBSettings::colorPaletteSize = 5;
+int UBSettings::colorPaletteSize = 8;
+int UBSettings::markerPaletteSize = 5;
 int UBSettings::objectFrameWidth = 20;
 int UBSettings::boardMargin = 10;
 
@@ -71,7 +72,7 @@ QString UBSettings::uniboardApplicationNamespaceUri = "http://uniboard.mnemis.co
 QString UBSettings::undoCommandTransactionName = "UndoTransaction";
 
 const int UBSettings::sDefaultFontPixelSize = 36;
-const char *UBSettings::sDefaultFontFamily = "Arial";
+const char *UBSettings::sDefaultFontFamily = "Georgia";
 const char *UBSettings::sDefaultFontStyleName = "Regular";
 
 QString UBSettings::currentFileVersion = "4.8.0";
@@ -390,7 +391,7 @@ void UBSettings::init()
     boardGridDarkBackgroundColors = new UBColorListSetting(this, "Board", "GridDarkBackgroundColors", gridDarkBackgroundColors, -1.0);
 
     QStringList penLightBackgroundColors;
-    penLightBackgroundColors << "#000000" << "#FF0000" <<"#004080" << "#008000" << "#FFDD00" << "#C87400" << "#800040" << "#008080"  << "#5F2D0A" << "#FFFFFF";
+    penLightBackgroundColors << "#004F8B" << "#000000" << "#008000" << "#E92536" << "#FFDD00" << "#AB008B" << "#00A0D7" << "#F6630D" << "#FFFFFF";
     boardPenLightBackgroundColors = new UBColorListSetting(this, "Board", "PenLightBackgroundColors", penLightBackgroundColors, 1.0);
 
     QStringList penDarkBackgroundColors;
@@ -417,6 +418,10 @@ void UBSettings::init()
     {
         penLightBackgroundSelectedColors << penLightBackgroundColors[i];
         penDarkBackgroundSelectedColors << penDarkBackgroundColors[i];
+    }
+
+    for (int i = 0; i < markerPaletteSize; i++)
+    {
         markerLightBackgroundSelectedColors << markerLightBackgroundColors[i];
         markerDarkBackgroundSelectedColors << markerDarkBackgroundColors[i];
     }
@@ -970,6 +975,12 @@ void UBSettings::setStylusPaletteVisible(bool visible)
     setValue("Board/StylusPaletteIsVisible", visible);
 }
 
+
+QColor UBSettings::textDefaultColor()
+{
+    QColor color(value("Board/TextDefaultColor", "#004F8B").toString());
+    return color.isValid() ? color : QColor("#004F8B");
+}
 
 QString UBSettings::fontFamily()
 {
@@ -1582,15 +1593,16 @@ void UBSettings::checkNewSettings()
     // Having too few colors actually causes OpenBoard to crash, hence these measures.
 
     QList<UBColorListSetting*> colorSettings;
-    colorSettings << boardPenDarkBackgroundSelectedColors
-                  << boardPenLightBackgroundSelectedColors
-                  << boardMarkerDarkBackgroundSelectedColors
-                  << boardMarkerLightBackgroundSelectedColors;
 
-    foreach (UBColorListSetting* setting, colorSettings) {
-        if (setting->colors().size() < 5)
-            setting->reset();
-    }
+    // the pen palette has colorPaletteSize colors, the marker palette markerPaletteSize colors
+    if (boardPenDarkBackgroundSelectedColors->colors().size() < colorPaletteSize)
+        boardPenDarkBackgroundSelectedColors->reset();
+    if (boardPenLightBackgroundSelectedColors->colors().size() < colorPaletteSize)
+        boardPenLightBackgroundSelectedColors->reset();
+    if (boardMarkerDarkBackgroundSelectedColors->colors().size() < markerPaletteSize)
+        boardMarkerDarkBackgroundSelectedColors->reset();
+    if (boardMarkerLightBackgroundSelectedColors->colors().size() < markerPaletteSize)
+        boardMarkerLightBackgroundSelectedColors->reset();
 
     colorSettings.clear();
 

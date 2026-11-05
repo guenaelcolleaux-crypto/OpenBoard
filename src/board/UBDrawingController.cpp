@@ -283,7 +283,11 @@ QColor UBDrawingController::toolColor(bool onDarkBackground)
 
 void UBDrawingController::setColorIndex(int index)
 {
-    Q_ASSERT(index >= 0 && index < UBSettings::settings()->colorPaletteSize);
+    const int paletteSize = (stylusTool() == UBStylusTool::Marker)
+            ? UBSettings::markerPaletteSize : UBSettings::colorPaletteSize;
+
+    if (index < 0 || index >= paletteSize)
+        return;
 
     if (stylusTool() == UBStylusTool::Marker)
     {

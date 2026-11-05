@@ -39,6 +39,12 @@
 #include "board/UBBoardView.h"
 #include "board/UBDrawingController.h"
 #include "core/UBSettings.h"
+#include "spellcheck/UBSpellChecker.h"
+#include "spellcheck/UBSpellHighlighter.h"
+
+#include <QMenu>
+#include <QClipboard>
+#include <QAbstractTextDocumentLayout>
 
 #include "core/memcheck.h"
 QColor UBGraphicsTextItem::lastUsedTextColor = QColor(Qt::black);
@@ -52,6 +58,8 @@ UBGraphicsTextItem::UBGraphicsTextItem(QGraphicsItem * parent)
     , isActivatedTextEditor(true)
 {
     setDelegate(new UBGraphicsTextItemDelegate(this, 0));
+
+    mSpellHighlighter = new UBSpellHighlighter(document());
 
     // TODO claudio remove this because in contrast with the fact the frame should be created on demand.
     Delegate()->createControls();
@@ -89,16 +97,11 @@ void UBGraphicsTextItem::initFontProperties()
 
     font.setPointSize(UBSettings::settings()->fontPointSize());
     format.setFont(font);
+    // Every new text zone starts with the default text color (same as the default pen color)
     if (UBSettings::settings()->isDarkBackground())
-    {
-        if (UBGraphicsTextItem::lastUsedTextColor == Qt::black)
-            UBGraphicsTextItem::lastUsedTextColor = Qt::white;
-    }
+        UBGraphicsTextItem::lastUsedTextColor = Qt::white;
     else
-    {
-        if (UBGraphicsTextItem::lastUsedTextColor == Qt::white)
-            UBGraphicsTextItem::lastUsedTextColor = Qt::black;
-    }
+        UBGraphicsTextItem::lastUsedTextColor = UBSettings::settings()->textDefaultColor();
 
     setDefaultTextColor(UBGraphicsTextItem::lastUsedTextColor);
     format.setForeground(QBrush(UBGraphicsTextItem::lastUsedTextColor));
@@ -163,6 +166,130 @@ QVariant UBGraphicsTextItem::itemChange(GraphicsItemChange change, const QVarian
         newValue = Delegate()->itemChange(change, value);
 
     return QGraphicsTextItem::itemChange(change, newValue);
+}
+
+void UBGraphicsTextItem::focusInEvent(QFocusEvent *event)
+{
+    QGraphicsTextItem::focusInEvent(event);
+
+    // show the spelling mistakes only while the text zone is being edited
+    if (mSpellHighlighter && (textInteractionFlags() & Qt::TextEditable))
+        mSpellHighlighter->setActive(true);
+}
+
+void UBGraphicsTextItem::focusOutEvent(QFocusEvent *event)
+{
+    QGraphicsTextItem::focusOutEvent(event);
+
+    // a context menu or another window taking the focus does not end the editing
+    if (event->reason() == Qt::PopupFocusReason || event->reason() == Qt::ActiveWindowFocusReason)
+        return;
+
+    if (mSpellHighlighter)
+        mSpellHighlighter->setActive(false);
+}
+
+void UBGraphicsTextItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+{
+    if (!(textInteractionFlags() & Qt::TextEditable) || !UBSpellChecker::instance()->isAvailable())
+    {
+        QGraphicsTextItem::contextMenuEvent(event);
+        return;
+    }
+
+    // find the word under the mouse
+    const int position = document()->documentLayout()->hitTest(event->pos(), Qt::FuzzyHit);
+    QTextBlock block = document()->findBlock(qMax(position, 0));
+    QTextCursor wordCursor;
+    QString word;
+
+    if (position >= 0 && block.isValid())
+    {
+        const int positionInBlock = position - block.position();
+
+        for (const auto& w : UBSpellChecker::words(block.text()))
+        {
+            if (positionInBlock >= w.first && positionInBlock <= w.first + w.second)
+            {
+                word = block.text().mid(w.first, w.second);
+                wordCursor = QTextCursor(document());
+                wordCursor.setPosition(block.position() + w.first);
+                wordCursor.setPosition(block.position() + w.first + w.second, QTextCursor::KeepAnchor);
+                break;
+            }
+        }
+    }
+
+    QMenu menu;
+    const bool misspelled = !word.isEmpty() && !UBSpellChecker::instance()->isCorrect(word);
+
+    if (misspelled)
+    {
+        const QStringList suggestions = UBSpellChecker::instance()->suggestions(word).mid(0, 8);
+
+        if (suggestions.isEmpty())
+            menu.addAction(QString::fromUtf8("(aucune suggestion)"))->setEnabled(false);
+
+        for (const QString& suggestion : suggestions)
+        {
+            QAction* action = menu.addAction(suggestion);
+            QFont font = action->font();
+            font.setBold(true);
+            action->setFont(font);
+
+            connect(action, &QAction::triggered, this, [this, wordCursor, suggestion]() {
+                QTextCursor cursor(wordCursor);
+                cursor.insertText(suggestion);
+                setTextCursor(cursor);
+                contentsChanged();
+            });
+        }
+
+        menu.addSeparator();
+        connect(menu.addAction(QString::fromUtf8("Ajouter « %1 » au dictionnaire").arg(word)), &QAction::triggered, this, [this, word]() {
+            UBSpellChecker::instance()->addToPersonalDictionary(word);
+            if (mSpellHighlighter)
+                mSpellHighlighter->rehighlight();
+        });
+        menu.addSeparator();
+    }
+
+    // usual editing actions
+    QTextCursor cursor = textCursor();
+    const bool hasSelection = cursor.hasSelection();
+
+    QAction* cut = menu.addAction(QString::fromUtf8("Couper"));
+    cut->setEnabled(hasSelection);
+    connect(cut, &QAction::triggered, this, [this]() {
+        QTextCursor c = textCursor();
+        QApplication::clipboard()->setText(c.selectedText().replace(QChar::ParagraphSeparator, '\n'));
+        c.removeSelectedText();
+        setTextCursor(c);
+    });
+
+    QAction* copy = menu.addAction(QString::fromUtf8("Copier"));
+    copy->setEnabled(hasSelection);
+    connect(copy, &QAction::triggered, this, [this]() {
+        QApplication::clipboard()->setText(textCursor().selectedText().replace(QChar::ParagraphSeparator, '\n'));
+    });
+
+    QAction* paste = menu.addAction(QString::fromUtf8("Coller"));
+    paste->setEnabled(!QApplication::clipboard()->text().isEmpty());
+    connect(paste, &QAction::triggered, this, [this]() {
+        QTextCursor c = textCursor();
+        c.insertText(QApplication::clipboard()->text());
+        setTextCursor(c);
+    });
+
+    menu.addSeparator();
+    connect(menu.addAction(QString::fromUtf8("Tout sélectionner")), &QAction::triggered, this, [this]() {
+        QTextCursor c(document());
+        c.select(QTextCursor::Document);
+        setTextCursor(c);
+    });
+
+    menu.exec(event->screenPos());
+    event->accept();
 }
 
 void UBGraphicsTextItem::mousePressEvent(QGraphicsSceneMouseEvent *event)

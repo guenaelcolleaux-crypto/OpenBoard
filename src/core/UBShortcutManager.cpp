@@ -183,7 +183,10 @@ void UBShortcutManager::addMainActions(UBMainWindow *mainWindow)
                    mainWindow->actionColor1,
                    mainWindow->actionColor2,
                    mainWindow->actionColor3,
-                   mainWindow->actionColor4
+                   mainWindow->actionColor4,
+                   mainWindow->actionColor5,
+                   mainWindow->actionColor6,
+                   mainWindow->actionColor7
                }, mainWindow);
 
     addActions(tr("Background"), {

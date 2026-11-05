@@ -137,6 +137,7 @@ class UBGraphicsTextItemDelegate : public UBGraphicsItemDelegate
 
     private:
         UBGraphicsTextItem* delegated();
+        void applyTextColor(const QColor& color);
 
         DelegateButton* mFontButton;
         DelegateButton* mColorButton;

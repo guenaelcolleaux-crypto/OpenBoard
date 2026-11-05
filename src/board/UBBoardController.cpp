@@ -356,6 +356,9 @@ void UBBoardController::setupToolbar()
     colorActions.append(mMainWindow->actionColor2);
     colorActions.append(mMainWindow->actionColor3);
     colorActions.append(mMainWindow->actionColor4);
+    colorActions.append(mMainWindow->actionColor5);
+    colorActions.append(mMainWindow->actionColor6);
+    colorActions.append(mMainWindow->actionColor7);
 
     UBToolbarButtonGroup *colorChoice =
             new UBToolbarButtonGroup(mMainWindow->boardToolBar, colorActions);
@@ -2106,6 +2109,12 @@ void UBBoardController::lastWindowClosed()
 
 void UBBoardController::setColorIndex(int pColorIndex)
 {
+    const int paletteSize = (UBDrawingController::drawingController()->stylusTool() == UBStylusTool::Marker)
+            ? UBSettings::markerPaletteSize : UBSettings::colorPaletteSize;
+
+    if (pColorIndex < 0 || pColorIndex >= paletteSize)
+        return;
+
     UBDrawingController::drawingController()->setColorIndex(pColorIndex);
 
     if (UBDrawingController::drawingController()->stylusTool() != UBStylusTool::Marker &&

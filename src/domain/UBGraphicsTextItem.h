@@ -37,6 +37,7 @@
 
 class UBGraphicsItemDelegate;
 class UBGraphicsScene;
+class UBSpellHighlighter;
 
 class UBGraphicsTextItem : public QGraphicsTextItem, public UBItem, public UBResizableGraphicsItem, public UBGraphicsItem
 {
@@ -120,6 +121,12 @@ class UBGraphicsTextItem : public QGraphicsTextItem, public UBItem, public UBRes
 
         virtual void keyPressEvent(QKeyEvent *event);
         virtual void keyReleaseEvent(QKeyEvent *event);
+
+        // French spell checking
+        virtual void focusInEvent(QFocusEvent *event);
+        virtual void focusOutEvent(QFocusEvent *event);
+        virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event);
+        UBSpellHighlighter* mSpellHighlighter = nullptr;
 
         virtual void dragMoveEvent(QGraphicsSceneDragDropEvent *event);
 

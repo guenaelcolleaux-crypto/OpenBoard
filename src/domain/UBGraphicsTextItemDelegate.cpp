@@ -43,6 +43,12 @@
 #include "board/UBBoardController.h"
 #include "board/UBBoardView.h"
 
+#include <QMenu>
+#include <QWidgetAction>
+#include <QToolButton>
+#include <QHBoxLayout>
+#include <QColorDialog>
+
 #include "core/memcheck.h"
 
 const int UBGraphicsTextItemDelegate::sMinPixelSize = 8;
@@ -309,8 +315,7 @@ void UBGraphicsTextItemDelegate::pickFont()
         if (fontDialog.exec())
         {
             QFont selectedFont = fontDialog.selectedFont();
-            UBSettings::settings()->setFontFamily(selectedFont.family());
-            UBSettings::settings()->setFontStyleName(selectedFont.styleName());
+            // The font family is not remembered: every new text zone starts with the default font (Georgia)
             UBSettings::settings()->setBoldFont(selectedFont.bold());
             UBSettings::settings()->setItalicFont(selectedFont.italic());
             UBSettings::settings()->setFontPointSize(selectedFont.pointSize());
@@ -332,9 +337,46 @@ void UBGraphicsTextItemDelegate::pickFont()
 
 void UBGraphicsTextItemDelegate::pickColor()
 {
-    if (mDelegated && mDelegated->scene() && mDelegated->scene()->views().size() > 0)
+    if (!(mDelegated && mDelegated->scene() && mDelegated->scene()->views().size() > 0))
+        return;
+
+    QWidget* view = static_cast<QGraphicsView*>(UBApplication::boardController->controlView());
+
+    // A row with the pen colors, chosen in one click, plus the full color dialog
+    QMenu menu(view);
+    QWidget* row = new QWidget(&menu);
+    QHBoxLayout* layout = new QHBoxLayout(row);
+    layout->setContentsMargins(6, 6, 6, 6);
+    layout->setSpacing(4);
+
+    QColor chosen;
+    const QList<QColor> colors = UBSettings::settings()->penColors(UBSettings::settings()->isDarkBackground());
+
+    for (const QColor& color : colors)
     {
-        QColorDialog colorDialog(delegated()->defaultTextColor(), static_cast<QGraphicsView*>(UBApplication::boardController->controlView()));
+        QToolButton* swatch = new QToolButton(row);
+        swatch->setFixedSize(30, 30);
+        swatch->setToolTip(color.name().toUpper());
+        swatch->setStyleSheet(QString("QToolButton { background-color: %1; border: 1px solid #808080; border-radius: 4px; }"
+                                      "QToolButton:hover { border: 2px solid #303030; }").arg(color.name()));
+        connect(swatch, &QToolButton::clicked, &menu, [&menu, &chosen, color]() {
+            chosen = color;
+            menu.close();
+        });
+        layout->addWidget(swatch);
+    }
+
+    QWidgetAction* rowAction = new QWidgetAction(&menu);
+    rowAction->setDefaultWidget(row);
+    menu.addAction(rowAction);
+    menu.addSeparator();
+    QAction* otherColor = menu.addAction(QString::fromUtf8("Autre couleur…"));
+
+    QAction* triggered = menu.exec(QCursor::pos());
+
+    if (triggered == otherColor)
+    {
+        QColorDialog colorDialog(delegated()->defaultTextColor(), view);
         colorDialog.setWindowTitle(tr("Text Color"));
         colorDialog.setOption(QColorDialog::DontUseNativeDialog);
         if (UBSettings::settings()->isDarkBackground())
@@ -343,28 +385,32 @@ void UBGraphicsTextItemDelegate::pickColor()
         }
 
         if (colorDialog.exec())
-        {
-            QColor selectedColor = colorDialog.selectedColor();
-
-            QTextCursor curCursor = delegated()->textCursor();
-
-            QTextCharFormat format;
-            format.setForeground(QBrush(selectedColor));
-            curCursor.mergeCharFormat(format);
-            delegated()->setTextCursor(curCursor);
-            saveTextCursorFormats();
-
-            if (!curCursor.hasSelection() || (curCursor.selectedText().length() == delegated()->toPlainText().length()))
-            {
-                delegated()->setDefaultTextColor(selectedColor);
-                UBGraphicsTextItem::lastUsedTextColor = selectedColor;
-            }
-
-            delegated()->setSelected(true);
-            delegated()->setFocus();
-            delegated()->contentsChanged();
-        }
+            chosen = colorDialog.selectedColor();
     }
+
+    if (chosen.isValid())
+        applyTextColor(chosen);
+}
+
+void UBGraphicsTextItemDelegate::applyTextColor(const QColor& selectedColor)
+{
+    QTextCursor curCursor = delegated()->textCursor();
+
+    QTextCharFormat format;
+    format.setForeground(QBrush(selectedColor));
+    curCursor.mergeCharFormat(format);
+    delegated()->setTextCursor(curCursor);
+    saveTextCursorFormats();
+
+    if (!curCursor.hasSelection() || (curCursor.selectedText().length() == delegated()->toPlainText().length()))
+    {
+        delegated()->setDefaultTextColor(selectedColor);
+        UBGraphicsTextItem::lastUsedTextColor = selectedColor;
+    }
+
+    delegated()->setSelected(true);
+    delegated()->setFocus();
+    delegated()->contentsChanged();
 }
 
 void UBGraphicsTextItemDelegate::decreaseSize()

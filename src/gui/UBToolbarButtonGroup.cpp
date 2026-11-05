@@ -238,9 +238,41 @@ void UBToolbarButtonGroup::colorPaletteChanged()
         colors = UBSettings::settings()->markerColors(isDarkBackground);
     }
 
-    for (int i = 0; i < mButtons.size() && i < colors.size(); i++)
+    if (colors.isEmpty())
+        return;
+
+    // The pen and the marker may have palettes of different sizes:
+    // only show the buttons of the colors of the current tool.
+    int lastVisible = -1;
+
+    for (int i = 0; i < mButtons.size(); i++)
     {
-        setColor(colors.at(i), i);
+        const bool visible = i < colors.size();
+
+        if (visible)
+        {
+            setColor(colors.at(i), i);
+            lastVisible = i;
+        }
+
+        mButtons.at(i)->setVisible(visible);
+        mButtons.at(i)->defaultAction()->setEnabled(visible);
+    }
+
+    // keep the rounded right border on the last visible button
+    for (int i = 1; i < mButtons.size(); i++)
+    {
+        QToolButton* button = mButtons.at(i);
+        QString name = button->objectName();
+        const QString wanted = (i == lastVisible) ? "ubButtonGroupRight" : "ubButtonGroupCenter";
+
+        if (!name.endsWith(wanted))
+        {
+            name.replace("ubButtonGroupRight", wanted).replace("ubButtonGroupCenter", wanted);
+            button->setObjectName(name);
+            button->style()->unpolish(button);
+            button->style()->polish(button);
+        }
     }
 }
 
