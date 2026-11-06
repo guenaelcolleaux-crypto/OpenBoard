@@ -214,6 +214,9 @@ qreal UBDrawingController::currentToolWidth()
 
 void UBDrawingController::setLineWidthIndex(int index)
 {
+    if (index < 0 || index >= (stylusTool() == UBStylusTool::Marker ? UBSettings::markerWidthCount : UBSettings::penWidthCount))
+        return;
+
     if (stylusTool() == UBStylusTool::Marker)
     {
         UBSettings::settings()->setMarkerWidthIndex(index);

@@ -83,6 +83,7 @@ struct UBWidth
     enum Enum
     {
         Fine = 0, Medium, Strong
+        // OpenBoard portable: the pen has 5 widths, the marker 3 and the eraser 4 (see UBSettings)
     };
 };
 

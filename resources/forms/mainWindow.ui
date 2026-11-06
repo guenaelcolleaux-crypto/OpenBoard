@@ -360,7 +360,7 @@
    </property>
    <property name="icon">
     <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/smallPen.png</normaloff>:/images/toolbar/smallPen.png</iconset>
+     <normaloff>:/images/toolbar/penWidth1.png</normaloff>:/images/toolbar/penWidth1.png</iconset>
    </property>
    <property name="text">
     <string>Line</string>
@@ -375,7 +375,7 @@
    </property>
    <property name="icon">
     <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/mediumPen.png</normaloff>:/images/toolbar/mediumPen.png</iconset>
+     <normaloff>:/images/toolbar/penWidth2.png</normaloff>:/images/toolbar/penWidth2.png</iconset>
    </property>
    <property name="text">
     <string>Line</string>
@@ -390,7 +390,7 @@
    </property>
    <property name="icon">
     <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/largePen.png</normaloff>:/images/toolbar/largePen.png</iconset>
+     <normaloff>:/images/toolbar/penWidth3.png</normaloff>:/images/toolbar/penWidth3.png</iconset>
    </property>
    <property name="text">
     <string>Line</string>
@@ -423,7 +423,7 @@
    </property>
    <property name="icon">
     <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/smallEraser.png</normaloff>:/images/toolbar/smallEraser.png</iconset>
+     <normaloff>:/images/toolbar/eraserWidth1.png</normaloff>:/images/toolbar/eraserWidth1.png</iconset>
    </property>
    <property name="text">
     <string>Eraser</string>
@@ -441,7 +441,7 @@
    </property>
    <property name="icon">
     <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/mediumEraser.png</normaloff>:/images/toolbar/mediumEraser.png</iconset>
+     <normaloff>:/images/toolbar/eraserWidth2.png</normaloff>:/images/toolbar/eraserWidth2.png</iconset>
    </property>
    <property name="text">
     <string>Eraser</string>
@@ -456,13 +456,58 @@
    </property>
    <property name="icon">
     <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/largeEraser.png</normaloff>:/images/toolbar/largeEraser.png</iconset>
+     <normaloff>:/images/toolbar/eraserWidth3.png</normaloff>:/images/toolbar/eraserWidth3.png</iconset>
    </property>
    <property name="text">
     <string>Eraser</string>
    </property>
    <property name="toolTip">
     <string>Large Eraser</string>
+   </property>
+  </action>
+  <action name="actionLine4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../OpenBoard.qrc">
+     <normaloff>:/images/toolbar/penWidth4.png</normaloff>:/images/toolbar/penWidth4.png</iconset>
+   </property>
+   <property name="text">
+    <string>Line</string>
+   </property>
+   <property name="toolTip">
+    <string>Very Large Line</string>
+   </property>
+  </action>
+  <action name="actionLine5">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../OpenBoard.qrc">
+     <normaloff>:/images/toolbar/penWidth5.png</normaloff>:/images/toolbar/penWidth5.png</iconset>
+   </property>
+   <property name="text">
+    <string>Line</string>
+   </property>
+   <property name="toolTip">
+    <string>Huge Line</string>
+   </property>
+  </action>
+  <action name="actionEraser4">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../OpenBoard.qrc">
+     <normaloff>:/images/toolbar/eraserWidth4.png</normaloff>:/images/toolbar/eraserWidth4.png</iconset>
+   </property>
+   <property name="text">
+    <string>Eraser</string>
+   </property>
+   <property name="toolTip">
+    <string>Very Large Eraser</string>
    </property>
   </action>
   <action name="actionColor0">

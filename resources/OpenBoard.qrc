@@ -70,6 +70,15 @@
         <file>images/toolbar/undo.png</file>
         <file>images/toolbar/undoOn.png</file>
         <file>images/toolbar/smallPen.png</file>
+        <file>images/toolbar/penWidth1.png</file>
+        <file>images/toolbar/penWidth2.png</file>
+        <file>images/toolbar/penWidth3.png</file>
+        <file>images/toolbar/penWidth4.png</file>
+        <file>images/toolbar/penWidth5.png</file>
+        <file>images/toolbar/eraserWidth1.png</file>
+        <file>images/toolbar/eraserWidth2.png</file>
+        <file>images/toolbar/eraserWidth3.png</file>
+        <file>images/toolbar/eraserWidth4.png</file>
         <file>images/toolbar/mediumPen.png</file>
         <file>images/toolbar/largePen.png</file>
         <file>images/toolbar/color.png</file>

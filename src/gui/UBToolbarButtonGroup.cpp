@@ -243,17 +243,22 @@ void UBToolbarButtonGroup::colorPaletteChanged()
 
     // The pen and the marker may have palettes of different sizes:
     // only show the buttons of the colors of the current tool.
+    for (int i = 0; i < mButtons.size() && i < colors.size(); i++)
+        setColor(colors.at(i), i);
+
+    setVisibleButtonCount(colors.size());
+}
+
+void UBToolbarButtonGroup::setVisibleButtonCount(int count)
+{
     int lastVisible = -1;
 
     for (int i = 0; i < mButtons.size(); i++)
     {
-        const bool visible = i < colors.size();
+        const bool visible = i < count;
 
         if (visible)
-        {
-            setColor(colors.at(i), i);
             lastVisible = i;
-        }
 
         mButtons.at(i)->setVisible(visible);
         mButtons.at(i)->defaultAction()->setEnabled(visible);

@@ -150,11 +150,26 @@ void UBBoardController::init()
     connect(persistenceManager, &UBPersistenceManager::documentSceneMoved, this, &UBBoardController::documentSceneMoved);
     connect(persistenceManager, &UBPersistenceManager::documentSceneDeleted, this, &UBBoardController::documentSceneDeleted);
 
-    std::shared_ptr<UBDocumentProxy> doc = UBPersistenceManager::persistenceManager()->createNewDocument();
+    // When the application starts in Documents mode, no new document is created:
+    // the board shows the most recently modified document (a new one is created
+    // only when there is no document at all).
+    std::shared_ptr<UBDocumentProxy> doc;
+
+    if (UBSettings::settings()->appStartMode->get().toInt() == 2)
+        doc = mostRecentDocument();
 
     if (doc)
     {
-        mInitialDocumentScene = setActiveDocumentScene(doc);
+        setActiveDocumentScene(doc);
+    }
+    else
+    {
+        doc = UBPersistenceManager::persistenceManager()->createNewDocument();
+
+        if (doc)
+        {
+            mInitialDocumentScene = setActiveDocumentScene(doc);
+        }
     }
 
     connect(UBApplication::displayManager, &UBDisplayManager::screenRolesAssigned, this, [this](){
@@ -164,6 +179,39 @@ void UBBoardController::init()
     undoRedoStateChange(true);
 }
 
+
+std::shared_ptr<UBDocumentProxy> UBBoardController::mostRecentDocument() const
+{
+    UBDocumentTreeModel* model = UBPersistenceManager::persistenceManager()->mDocumentTreeStructureModel;
+
+    if (!model)
+        return nullptr;
+
+    std::shared_ptr<UBDocumentProxy> newest;
+    QList<QModelIndex> toVisit;
+    toVisit << model->myDocumentsIndex();
+
+    while (!toVisit.isEmpty())
+    {
+        const QModelIndex index = toVisit.takeFirst();
+
+        if (!index.isValid() || model->inTrash(index))
+            continue;
+
+        if (model->isDocument(index))
+        {
+            std::shared_ptr<UBDocumentProxy> proxy = model->proxyForIndex(index);
+
+            if (proxy && (!newest || proxy->lastUpdate() > newest->lastUpdate()))
+                newest = proxy;
+        }
+
+        for (int row = 0; row < model->rowCount(index); ++row)
+            toVisit << model->index(row, 0, index);
+    }
+
+    return newest;
+}
 
 UBBoardController::~UBBoardController()
 {
@@ -383,9 +431,16 @@ void UBBoardController::setupToolbar()
     lineWidthActions.append(mMainWindow->actionLineSmall);
     lineWidthActions.append(mMainWindow->actionLineMedium);
     lineWidthActions.append(mMainWindow->actionLineLarge);
+    lineWidthActions.append(mMainWindow->actionLine4);
+    lineWidthActions.append(mMainWindow->actionLine5);
 
     UBToolbarButtonGroup *lineWidthChoice =
             new UBToolbarButtonGroup(mMainWindow->boardToolBar, lineWidthActions);
+
+    // the pen has 5 widths, the marker 3
+    connect(UBDrawingController::drawingController(), &UBDrawingController::stylusToolChanged, lineWidthChoice, [lineWidthChoice](int tool) {
+        lineWidthChoice->setVisibleButtonCount(tool == UBStylusTool::Marker ? UBSettings::markerWidthCount : UBSettings::penWidthCount);
+    });
 
     connect(settings->appToolBarDisplayText, SIGNAL(changed(QVariant)), lineWidthChoice, SLOT(displayText(QVariant)));
 
@@ -408,6 +463,7 @@ void UBBoardController::setupToolbar()
     eraserWidthActions.append(mMainWindow->actionEraserSmall);
     eraserWidthActions.append(mMainWindow->actionEraserMedium);
     eraserWidthActions.append(mMainWindow->actionEraserLarge);
+    eraserWidthActions.append(mMainWindow->actionEraser4);
 
     UBToolbarButtonGroup *eraserWidthChoice =
             new UBToolbarButtonGroup(mMainWindow->boardToolBar, eraserWidthActions);

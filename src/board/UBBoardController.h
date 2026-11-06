@@ -188,6 +188,8 @@ class UBBoardController : public UBDocumentContainer
         QString actionGroupText() const { return mActionGroupText;}
         QString actionUngroupText() const { return mActionUngroupText;}
 
+        std::shared_ptr<UBDocumentProxy> mostRecentDocument() const;
+
         std::shared_ptr<UBGraphicsScene> initialDocumentScene() const
         {
             return mInitialDocumentScene;

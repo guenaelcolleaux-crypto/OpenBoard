@@ -46,6 +46,7 @@ class UBToolbarButtonGroup : public QWidget
         virtual ~UBToolbarButtonGroup();
 
         void setIcon(const QIcon &icon, int index);
+        void setVisibleButtonCount(int count);
         void setColor(const QColor &color, int index);
         int currentIndex() const;
         void setLabel(const QString& label);

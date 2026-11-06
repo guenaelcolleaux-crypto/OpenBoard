@@ -307,6 +307,43 @@ void UBBoardView::keyPressEvent (QKeyEvent *event)
 
 bool UBBoardView::event (QEvent * e)
 {
+    // Tab switches between the pen (or the marker) and the eraser,
+    // except while writing in a text zone
+    if (e->type() == QEvent::KeyPress && bIsControl)
+    {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(e);
+
+        if (keyEvent->key() == Qt::Key_Tab && keyEvent->modifiers() == Qt::NoModifier && !keyEvent->isAutoRepeat())
+        {
+            QGraphicsItem* focus = scene() ? scene()->focusItem() : nullptr;
+            UBGraphicsTextItem* textItem = dynamic_cast<UBGraphicsTextItem*>(focus);
+            const bool editingText = textItem && (textItem->textInteractionFlags() & Qt::TextEditable);
+
+            if (!editingText)
+            {
+                static int toolBeforeEraser = UBStylusTool::Pen;
+                const int tool = UBDrawingController::drawingController()->stylusTool();
+
+                if (tool == UBStylusTool::Eraser)
+                {
+                    if (toolBeforeEraser == UBStylusTool::Marker)
+                        UBApplication::mainWindow->actionMarker->trigger();
+                    else
+                        UBApplication::mainWindow->actionPen->trigger();
+                    e->accept();
+                    return true;
+                }
+                else if (tool == UBStylusTool::Pen || tool == UBStylusTool::Marker)
+                {
+                    toolBeforeEraser = tool;
+                    UBApplication::mainWindow->actionEraser->trigger();
+                    e->accept();
+                    return true;
+                }
+            }
+        }
+    }
+
     if (e->type () == QEvent::Gesture)
     {
         QGestureEvent *gestureEvent = dynamic_cast<QGestureEvent *> (e);
@@ -1518,25 +1555,11 @@ void UBBoardView::mouseReleaseEvent (QMouseEvent *event)
 
                 UBGraphicsTextItemDelegate * textItemDelegate = dynamic_cast<UBGraphicsTextItemDelegate*>(textItem->Delegate());
 
-                if (textItemDelegate)
-                {
-                    if (rubberRect.width() == 0)
-                    {
-                        textItem->setTextWidth(scene()->nominalSize().width() / mController->currentZoom() / 4.);
-                    }
-                    else if (rubberRect.width() <= (textItemDelegate->titleBarWidth() * mController->currentZoom()))
-                    {
-                        textItem->setTextWidth(textItemDelegate->titleBarWidth());
-                    }
-                    else // rubberRect.width() > (textItemDelegate->titleBarWidth() * mController->currentZoom())
-                    {
-                        textItem->setTextWidth(mapToScene(rubberRect).boundingRect().width());
-                    }
-                }
-                else
-                {
-                    textItem->setTextWidth(scene()->nominalSize().width() / mController->currentZoom() / 4.);
-                }
+                // the new text zone takes 90% of the width of the page, centered on the page
+                Q_UNUSED(textItemDelegate);
+                const qreal pageWidth = scene()->nominalSize().width();
+                textItem->setTextWidth(0.9 * pageWidth);
+                textItem->setPos(-0.45 * pageWidth, textItem->pos().y());
                 textItem->setFocus();
             }
         }

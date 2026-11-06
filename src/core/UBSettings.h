@@ -204,6 +204,9 @@ class UBSettings : public QObject
 
         static int colorPaletteSize;
         static int markerPaletteSize;
+        static int penWidthCount;
+        static int markerWidthCount;
+        static int eraserWidthCount;
         static int objectFrameWidth;
 
         static QString documentGroupName;
@@ -284,6 +287,8 @@ class UBSettings : public QObject
         UBSetting* boardPenFineWidth;
         UBSetting* boardPenMediumWidth;
         UBSetting* boardPenStrongWidth;
+        UBSetting* boardPenLargeWidth;
+        UBSetting* boardPenHugeWidth;
 
         UBSetting* boardMarkerFineWidth;
         UBSetting* boardMarkerMediumWidth;

@@ -416,6 +416,25 @@ void UBGraphicsTextItem::keyPressEvent(QKeyEvent *event)
         return;
     }
 
+    // Ctrl+Shift+B: subscript, Ctrl+Shift+P: superscript (pressing again goes back to normal text)
+    if ((event->modifiers() & ~Qt::KeypadModifier) == (Qt::ControlModifier | Qt::ShiftModifier)
+            && (event->key() == Qt::Key_B || event->key() == Qt::Key_P))
+    {
+        const QTextCharFormat::VerticalAlignment wanted = (event->key() == Qt::Key_B)
+                ? QTextCharFormat::AlignSubScript : QTextCharFormat::AlignSuperScript;
+
+        QTextCursor curCursor = textCursor();
+        QTextCharFormat format;
+        format.setVerticalAlignment(curCursor.charFormat().verticalAlignment() == wanted
+                                    ? QTextCharFormat::AlignNormal : wanted);
+        curCursor.mergeCharFormat(format);
+        setTextCursor(curCursor);
+
+        contentsChanged();
+        event->accept();
+        return;
+    }
+
     if (event->matches (QKeySequence::StandardKey::Bold) ||
         event->matches (QKeySequence::StandardKey::Underline) ||
         event->matches (QKeySequence::StandardKey::Italic))
