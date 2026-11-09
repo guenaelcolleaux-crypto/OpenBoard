@@ -91,6 +91,9 @@ jobs:
           Copy-Item "$env:QT_ROOT_DIR/translations/qt_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
           Copy-Item "$env:QT_ROOT_DIR/translations/qtbase_*.qm" "$out/i18n" -ErrorAction SilentlyContinue
 
+          # User guide
+          Copy-Item "OpenBoard/resources/portable/Lisez moi.txt" $out
+
           # Folders kept on the USB key
           New-Item -ItemType Directory -Force "$out/data", "$out/Documents UBZ" | Out-Null
 

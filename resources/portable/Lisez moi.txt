@@ -1,0 +1,174 @@
+﻿OPENBOARD - VERSION PORTABLE PERSONNALISÉE
+==========================================
+
+Cette version d'OpenBoard (basée sur OpenBoard 1.7.7) fonctionne
+directement depuis une clé USB, sans installation. Elle contient un
+ensemble de modifications décrites ci-dessous.
+
+Mise à jour de ce fichier : novembre 2026.
+
+
+1. PREMIER LANCEMENT
+--------------------
+
+- Décompresser le dossier sur la clé USB, puis lancer OpenBoard.exe.
+- Windows peut afficher « Windows a protégé votre ordinateur » (le
+  programme n'est pas signé numériquement) : cliquer sur
+  « Informations complémentaires », puis sur « Exécuter quand même ».
+- Rien n'est installé sur l'ordinateur : tout ce qui est nécessaire,
+  y compris les bibliothèques Visual C++, se trouve dans le dossier.
+- Certains ordinateurs d'établissement interdisent de lancer un
+  programme depuis une clé USB ; dans ce cas, s'adresser au service
+  informatique.
+
+
+2. VERSION PORTABLE : OÙ SONT ENREGISTRÉS LES FICHIERS
+------------------------------------------------------
+
+Tout est enregistré sur la clé, dans le dossier du logiciel :
+
+  OpenBoard\
+    OpenBoard.exe         le programme
+    data\                 TOUTES vos données :
+      document\             vos documents (un dossier par document,
+                            nommé d'après sa date de création)
+      OpenBoardUser.config  vos réglages
+      dictionnaire-personnel.txt   les mots ajoutés au correcteur
+      Images, Videos, Audio, libraryPalette...   votre bibliothèque
+    Documents UBZ\        les fichiers que vous exportez (UBZ, PDF...)
+    Enregistrements\      les enregistrements vidéo (podcasts)
+
+- Vos documents vous suivent d'un ordinateur à l'autre, même si la
+  clé change de lettre (E:, F:...).
+- Pour retrouver un document, passer par le bouton « Documents »
+  d'OpenBoard : les noms des dossiers dans data\document ne
+  correspondent pas aux noms donnés aux documents. Ne pas renommer ni
+  déplacer ces dossiers à la main.
+- Pour obtenir un vrai fichier (à envoyer, à sauvegarder, à ouvrir sur
+  un autre OpenBoard) : mode Documents > sélectionner le document >
+  « Exporter » > UBZ ou PDF. Le fichier est créé par défaut dans
+  « Documents UBZ ».
+- Les mises à jour automatiques d'OpenBoard sont désactivées (elles
+  remplaceraient cette version par la version officielle).
+- L'interface est toujours en français, quelle que soit la langue de
+  Windows.
+
+Conseil : faites régulièrement une copie du dossier « data » ailleurs
+que sur la clé.
+
+
+3. PASSER À UNE NOUVELLE VERSION SANS PERDRE SES DOCUMENTS
+----------------------------------------------------------
+
+1. Fermer OpenBoard.
+2. Décompresser la nouvelle version dans un nouveau dossier.
+3. Copier l'ancien dossier « data » (et « Documents UBZ ») dans le
+   nouveau dossier, en remplaçant les dossiers vides.
+4. Lancer la nouvelle version, vérifier dans « Documents » que tout
+   est présent, puis supprimer l'ancien dossier du logiciel.
+
+Les documents, l'arborescence des dossiers, la corbeille, les réglages,
+la bibliothèque et le dictionnaire personnel sont tous dans « data ».
+
+
+4. DÉMARRAGE
+------------
+
+- OpenBoard s'ouvre sur le mode Documents, sans créer de nouveau
+  document vide. Le dernier document modifié est présélectionné :
+  le bouton « Tableau » l'ouvre directement.
+- Un document n'est créé automatiquement que s'il n'en existe aucun.
+- Le bouton « Web » a été retiré des barres d'outils.
+
+
+5. CRAYON, SURLIGNEUR ET GOMME
+------------------------------
+
+Couleurs du crayon (de gauche à droite) :
+  #004F8B (bleu foncé, couleur par défaut), #000000 (noir),
+  #008000 (vert), #E92536 (rouge), #FFDD00 (jaune),
+  #AB008B (violet), #00A0D7 (bleu clair), #F6630D (orange).
+  Les touches 1 à 8 du clavier choisissent aussi ces couleurs.
+
+Le surligneur garde ses 5 couleurs d'origine.
+
+Tailles :
+  - crayon : 4 tailles (1 / 3 / 5 / 12), taille 3 par défaut ;
+  - surligneur : 3 tailles (inchangées) ;
+  - gomme : 3 tailles (16 / 40 / 80).
+
+Touche Tab : passe du crayon à la gomme et de la gomme au crayon
+(si l'on venait du surligneur, Tab ramène au surligneur). Elle n'agit
+pas pendant l'écriture dans une zone de texte.
+
+
+6. TRAITS DROITS (crayon et surligneur)
+---------------------------------------
+
+- Maintenir Shift en commençant le trait : trait parfaitement
+  horizontal ou vertical (selon la direction principale du geste).
+- Maintenir Ctrl en commençant le trait : trait droit dans n'importe
+  quelle direction.
+
+
+7. RECONNAISSANCE DE FORMES (crayon et surligneur)
+--------------------------------------------------
+
+Tracer une forme fermée à main levée puis, SANS LEVER LE CRAYON,
+rester immobile une demi-seconde : le tracé est remplacé par une forme
+propre, de la même couleur et de la même épaisseur.
+
+Formes reconnues :
+  - cercle (ou ellipse si le tracé est allongé) ;
+  - triangle (les sommets restent là où on les a placés) ;
+  - carré ou rectangle (si les angles sont proches de 90°, même tourné),
+    sinon quadrilatère quelconque (trapèze, losange...).
+
+Sans la pause, le tracé n'est jamais modifié : l'écriture et les
+dessins à main levée restent intacts. « Annuler » retire la forme.
+
+
+8. ZONES DE TEXTE
+-----------------
+
+- Toute nouvelle zone de texte est en police Georgia, couleur #004F8B,
+  et occupe 90 % de la largeur de la page (centrée), à la hauteur où
+  on la trace.
+- Le bouton couleur (la roue) propose les 8 couleurs du crayon en un
+  clic, sur le texte sélectionné ou sur tout le texte. « Autre
+  couleur... » donne accès à toutes les teintes.
+- Indice : Ctrl+Shift+B. Exposant : Ctrl+Shift+P. Le même raccourci
+  revient au texte normal. Fonctionne aussi sur un texte sélectionné.
+- Correcteur d'orthographe français :
+    - les mots inconnus sont soulignés d'une vague rouge, uniquement
+      pendant l'écriture (le soulignement n'apparaît ni au tableau ni
+      dans les exports) ;
+    - clic droit sur un mot souligné : propositions de correction et
+      « Ajouter au dictionnaire » ;
+    - les mots contenant des majuscules internes (sigles, unités comme
+      kJ ou pH) ne sont pas vérifiés.
+
+
+9. CORRECTIONS DE BUGS
+----------------------
+
+- « Ajouter > Ajouter des pages depuis un fichier » (mode Documents)
+  avec un fichier UBZ : les pages ajoutées restaient invisibles et
+  l'ajout suivant échouait ou les écrasait. C'est corrigé.
+  Un document qui avait subi ce bug peut contenir une page « cachée »
+  qui réapparaît en fin de document : la supprimer si elle est en
+  double.
+
+
+10. INFORMATIONS TECHNIQUES
+---------------------------
+
+- Logiciel libre sous licence GPL v3, modifié à partir d'OpenBoard
+  1.7.7 (https://github.com/OpenBoard-org/OpenBoard).
+- Code source de cette version :
+  https://github.com/guenaelcolleaux-crypto/OpenBoard (branche
+  « portable »).
+- Correcteur : Hunspell, dictionnaire français Grammalecte
+  (licence MPL 2.0).
+- Dernière version :
+  https://github.com/guenaelcolleaux-crypto/OpenBoard/releases/latest/download/OpenBoard-Portable.zip
