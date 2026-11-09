@@ -432,7 +432,6 @@ void UBBoardController::setupToolbar()
     lineWidthActions.append(mMainWindow->actionLineMedium);
     lineWidthActions.append(mMainWindow->actionLineLarge);
     lineWidthActions.append(mMainWindow->actionLine4);
-    lineWidthActions.append(mMainWindow->actionLine5);
 
     UBToolbarButtonGroup *lineWidthChoice =
             new UBToolbarButtonGroup(mMainWindow->boardToolBar, lineWidthActions);
@@ -463,7 +462,6 @@ void UBBoardController::setupToolbar()
     eraserWidthActions.append(mMainWindow->actionEraserSmall);
     eraserWidthActions.append(mMainWindow->actionEraserMedium);
     eraserWidthActions.append(mMainWindow->actionEraserLarge);
-    eraserWidthActions.append(mMainWindow->actionEraser4);
 
     UBToolbarButtonGroup *eraserWidthChoice =
             new UBToolbarButtonGroup(mMainWindow->boardToolBar, eraserWidthActions);

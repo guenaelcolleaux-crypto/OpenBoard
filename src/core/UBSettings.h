@@ -288,7 +288,6 @@ class UBSettings : public QObject
         UBSetting* boardPenMediumWidth;
         UBSetting* boardPenStrongWidth;
         UBSetting* boardPenLargeWidth;
-        UBSetting* boardPenHugeWidth;
 
         UBSetting* boardMarkerFineWidth;
         UBSetting* boardMarkerMediumWidth;

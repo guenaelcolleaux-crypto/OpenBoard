@@ -269,8 +269,13 @@ int UBDocumentManager::addFilesToDocument(std::shared_ptr<UBDocumentProxy> docum
                     //the file will be not imported...
                     UBDocumentBasedImportAdaptor* importAdaptor = dynamic_cast<UBDocumentBasedImportAdaptor*>(adaptor);
 
+                    const int pageCountBefore = document->pageCount();
+
                     if (importAdaptor && importAdaptor->addFileToDocument(document, file))
                     {
+                        // show the pages that were copied from the file
+                        doc->pagesAddedOnDisk(pageCountBefore);
+
                         nImportedDocuments++;
                         break;
                     }

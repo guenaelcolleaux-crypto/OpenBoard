@@ -1285,7 +1285,9 @@ bool UBPersistenceManager::addDirectoryContentToDocument(const QString& document
                 return false;
     }
 
-    pDocument->setPageCount(pDocument->pageCount());
+    // the pages added from the file must be counted, otherwise they are not shown
+    // and the next pages added to the document overwrite them
+    pDocument->setPageCount(targetPageCount + sourceScenes.size());
 
     //issue NC - NNE - 20131213 : At this point, all is well done.
     return true;

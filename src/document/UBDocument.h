@@ -59,6 +59,8 @@ public:
     void movePage(int fromIndex, int toIndex);
     void copyPage(int fromIndex, std::shared_ptr<UBDocumentProxy> to, int toIndex);
     void insertPage(std::shared_ptr<UBGraphicsScene> scene, int index, bool persist = true, bool deleting = false);
+    //! show pages whose files were added directly to the document folder
+    void pagesAddedOnDisk(int fromIndex);
     std::shared_ptr<UBGraphicsScene> createPage(int index, bool useUndoRedoStack = true);
     void persistPage(std::shared_ptr<UBGraphicsScene> scene, const int index, bool isAutomaticBackup = false,
                      bool forceImmediateSaving = false);

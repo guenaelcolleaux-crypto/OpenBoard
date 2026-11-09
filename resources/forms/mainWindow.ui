@@ -79,7 +79,6 @@
    <addaction name="actionErase"/>
    <addaction name="separator"/>
    <addaction name="actionBoard"/>
-   <addaction name="actionWeb"/>
    <addaction name="actionDocument"/>
    <addaction name="actionDesktop"/>
    <addaction name="actionMenu"/>
@@ -129,7 +128,6 @@
    <addaction name="actionWebSmaller"/>
    <addaction name="separator"/>
    <addaction name="actionBoard"/>
-   <addaction name="actionWeb"/>
    <addaction name="actionDocument"/>
    <addaction name="actionDesktop"/>
    <addaction name="actionMenu"/>
@@ -183,7 +181,6 @@
    <addaction name="actionDocumentAdd"/>
    <addaction name="separator"/>
    <addaction name="actionBoard"/>
-   <addaction name="actionWeb"/>
    <addaction name="actionDocument"/>
    <addaction name="actionDesktop"/>
    <addaction name="actionMenu"/>
@@ -471,43 +468,13 @@
    </property>
    <property name="icon">
     <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/penWidth4.png</normaloff>:/images/toolbar/penWidth4.png</iconset>
-   </property>
-   <property name="text">
-    <string>Line</string>
-   </property>
-   <property name="toolTip">
-    <string>Very Large Line</string>
-   </property>
-  </action>
-  <action name="actionLine5">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../OpenBoard.qrc">
      <normaloff>:/images/toolbar/penWidth5.png</normaloff>:/images/toolbar/penWidth5.png</iconset>
    </property>
    <property name="text">
     <string>Line</string>
    </property>
    <property name="toolTip">
-    <string>Huge Line</string>
-   </property>
-  </action>
-  <action name="actionEraser4">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../OpenBoard.qrc">
-     <normaloff>:/images/toolbar/eraserWidth4.png</normaloff>:/images/toolbar/eraserWidth4.png</iconset>
-   </property>
-   <property name="text">
-    <string>Eraser</string>
-   </property>
-   <property name="toolTip">
-    <string>Very Large Eraser</string>
+    <string>Very Large Line</string>
    </property>
   </action>
   <action name="actionColor0">

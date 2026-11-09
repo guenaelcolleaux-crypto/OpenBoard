@@ -52,9 +52,9 @@ int UBSettings::minCrossSize = 12;
 int UBSettings::maxCrossSize = 96; //TODO: user-settable?
 bool UBSettings::intermediateLines = false;
 int UBSettings::colorPaletteSize = 8;
-int UBSettings::penWidthCount = 5;
+int UBSettings::penWidthCount = 4;
 int UBSettings::markerWidthCount = 3;
-int UBSettings::eraserWidthCount = 4;
+int UBSettings::eraserWidthCount = 3;
 int UBSettings::markerPaletteSize = 5;
 int UBSettings::objectFrameWidth = 20;
 int UBSettings::boardMargin = 10;
@@ -362,11 +362,10 @@ void UBSettings::init()
 
     featureSliderPosition = new UBSetting(this, "Board", "FeatureSliderPosition", 40);
 
-    boardPenFineWidth = new UBSetting(this, "Board", "PenFineWidth", 1.5);
+    boardPenFineWidth = new UBSetting(this, "Board", "PenFineWidth", 1.0);
     boardPenMediumWidth = new UBSetting(this, "Board", "PenMediumWidth", 3.0);
-    boardPenStrongWidth = new UBSetting(this, "Board", "PenStrongWidth", 8.0);
+    boardPenStrongWidth = new UBSetting(this, "Board", "PenStrongWidth", 12.0);
     boardPenLargeWidth = new UBSetting(this, "Board", "PenLargeWidth", 5.0);
-    boardPenHugeWidth = new UBSetting(this, "Board", "PenHugeWidth", 12.0);
 
     boardMarkerFineWidth = new UBSetting(this, "Board", "MarkerFineWidth", 12.0);
     boardMarkerMediumWidth = new UBSetting(this, "Board", "MarkerMediumWidth", 24.0);
@@ -676,7 +675,7 @@ void UBSettings::save()
 
 int UBSettings::penWidthIndex()
 {
-    return qBound(0, value("Board/PenLineWidthIndex", 0).toInt(), penWidthCount - 1);
+    return qBound(0, value("Board/PenLineWidthIndex", 1).toInt(), penWidthCount - 1);
 }
 
 
@@ -691,15 +690,14 @@ void UBSettings::setPenWidthIndex(int index)
 
 qreal UBSettings::currentPenWidth()
 {
-    // 5 widths, from the finest to the largest
+    // 4 widths, from the finest to the largest
     switch (penWidthIndex())
     {
         case 0: return boardPenFineWidth->get().toDouble();
         case 1: return boardPenMediumWidth->get().toDouble();
         case 2: return boardPenLargeWidth->get().toDouble();
         case 3: return boardPenStrongWidth->get().toDouble();
-        case 4: return boardPenHugeWidth->get().toDouble();
-        default: return boardPenFineWidth->get().toDouble();
+        default: return boardPenMediumWidth->get().toDouble();
     }
 }
 
@@ -856,14 +854,13 @@ void UBSettings::setEraserStrongWidth(qreal width)
 
 qreal UBSettings::currentEraserWidth()
 {
-    // 4 widths, from the finest to the largest
+    // 3 widths, from the finest to the largest
     switch (eraserWidthIndex())
     {
         case 0: return eraserFineWidth();
         case 1: return eraserMediumWidth();
         case 2: return value("Board/EraserLargeWidth", 80).toDouble();
-        case 3: return eraserStrongWidth();
-        default: return eraserFineWidth();
+        default: return eraserMediumWidth();
     }
 }
 

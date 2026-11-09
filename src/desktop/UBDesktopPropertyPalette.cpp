@@ -85,7 +85,6 @@ UBDesktopPenPalette::UBDesktopPenPalette(QWidget *parent, UBRightPalette* rightP
     lineWidthActions.append(UBApplication::mainWindow->actionLineMedium);
     lineWidthActions.append(UBApplication::mainWindow->actionLineLarge);
     lineWidthActions.append(UBApplication::mainWindow->actionLine4);
-    lineWidthActions.append(UBApplication::mainWindow->actionLine5);
 
     UBToolbarButtonGroup *lineWidthChoice =
             new UBToolbarButtonGroup(UBApplication::mainWindow->boardToolBar, lineWidthActions, objectNamePrefix);
@@ -138,7 +137,6 @@ UBDesktopEraserPalette::UBDesktopEraserPalette(QWidget *parent, UBRightPalette* 
     eraserWidthActions.append(UBApplication::mainWindow->actionEraserSmall);
     eraserWidthActions.append(UBApplication::mainWindow->actionEraserMedium);
     eraserWidthActions.append(UBApplication::mainWindow->actionEraserLarge);
-    eraserWidthActions.append(UBApplication::mainWindow->actionEraser4);
 
     UBToolbarButtonGroup *eraserWidthChoice = new UBToolbarButtonGroup(UBApplication::mainWindow->boardToolBar, eraserWidthActions, objectNamePrefix);
 

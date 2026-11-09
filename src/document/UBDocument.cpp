@@ -136,6 +136,12 @@ void UBDocument::insertPage(std::shared_ptr<UBGraphicsScene> scene, int index, b
     mThumbnailScene->insertThumbnail(index);
 }
 
+void UBDocument::pagesAddedOnDisk(int fromIndex)
+{
+    for (int index = fromIndex; index < mProxy->pageCount(); ++index)
+        mThumbnailScene->insertThumbnail(index);
+}
+
 std::shared_ptr<UBGraphicsScene> UBDocument::createPage(int index, bool useUndoRedoStack)
 {
     auto scene = UBPersistenceManager::persistenceManager()->createDocumentSceneAt(mProxy, index, useUndoRedoStack);
