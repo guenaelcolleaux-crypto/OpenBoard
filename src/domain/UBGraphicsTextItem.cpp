@@ -43,6 +43,8 @@
 #include "spellcheck/UBSpellHighlighter.h"
 
 #include <QMenu>
+#include <QTextDocument>
+#include <memory>
 #include <QClipboard>
 #include <QAbstractTextDocumentLayout>
 
@@ -416,6 +418,19 @@ void UBGraphicsTextItem::keyPressEvent(QKeyEvent *event)
         return;
     }
 
+    // Greek letters (Ctrl+letter, Ctrl+Shift+letter for some capitals)
+    const QString greek = greekLetterFor(event);
+    if (!greek.isEmpty())
+    {
+        QTextCursor curCursor = textCursor();
+        curCursor.insertText(greek);
+        setTextCursor(curCursor);
+
+        contentsChanged();
+        event->accept();
+        return;
+    }
+
     // Ctrl+Shift+B: subscript, Ctrl+Shift+P: superscript (pressing again goes back to normal text)
     if ((event->modifiers() & ~Qt::KeypadModifier) == (Qt::ControlModifier | Qt::ShiftModifier)
             && (event->key() == Qt::Key_B || event->key() == Qt::Key_P))
@@ -610,6 +625,120 @@ void UBGraphicsTextItem::contentsChanged()
     {
         scene()->setModified(true);
     }
+
+    adjustAutoWidth();
+}
+
+void UBGraphicsTextItem::adjustAutoWidth()
+{
+    auto ubScene = scene();
+
+    if (!mAutoWidth || !ubScene || !transform().isIdentity())
+        return;
+
+    const qreal pageWidth = ubScene->nominalSize().width();
+
+    if (pageWidth <= 0)
+        return;
+
+    // width of the text without line wrapping
+    std::unique_ptr<QTextDocument> unwrapped(document()->clone());
+    unwrapped->setTextWidth(-1);
+    const qreal naturalWidth = unwrapped->size().width() + 2;
+
+    const qreal width = qBound(autoWidthMin * pageWidth, naturalWidth, autoWidthMax * pageWidth);
+
+    if (qAbs(width - textWidth()) > 0.5)
+    {
+        setTextWidth(width);
+        setTextHeight(document()->size().height());
+
+        // the zone stays inside the page (5% margins), moving to the left if needed
+        const qreal right = 0.5 * pageWidth * autoWidthMax;
+        if (pos().x() + width > right)
+            setPos(qMax(-right, right - width), pos().y());
+
+        if (Delegate())
+            Delegate()->positionHandles();
+    }
+}
+
+void UBGraphicsTextItem::resize(const QSizeF& pSize)
+{
+    // the user chose the size: the zone does not follow the text any more
+    mAutoWidth = false;
+    UBResizableGraphicsItem::resize(pSize);
+}
+
+QString UBGraphicsTextItem::greekLetterFor(const QKeyEvent* event)
+{
+    const Qt::KeyboardModifiers modifiers = event->modifiers() & ~Qt::KeypadModifier;
+
+    if (modifiers == Qt::ControlModifier)
+    {
+        switch (event->key())
+        {
+            case Qt::Key_A: return QString(QChar(0x03B1)); // alpha
+            case Qt::Key_B: return QString(QChar(0x03B2)); // beta
+            case Qt::Key_G: return QString(QChar(0x03B3)); // gamma
+            case Qt::Key_D: return QString(QChar(0x03B4)); // delta
+            case Qt::Key_E: return QString(QChar(0x03B5)); // epsilon
+            case Qt::Key_Z: return QString(QChar(0x03B6)); // zeta
+            case Qt::Key_H: return QString(QChar(0x03B7)); // eta
+            case Qt::Key_Q: return QString(QChar(0x03B8)); // theta
+            case Qt::Key_L: return QString(QChar(0x03BB)); // lambda
+            case Qt::Key_M: return QString(QChar(0x03BC)); // mu
+            case Qt::Key_N: return QString(QChar(0x03BD)); // nu
+            case Qt::Key_X: return QString(QChar(0x03BE)); // xi
+            case Qt::Key_P: return QString(QChar(0x03C0)); // pi
+            case Qt::Key_R: return QString(QChar(0x03C1)); // rho
+            case Qt::Key_S: return QString(QChar(0x03C3)); // sigma
+            case Qt::Key_T: return QString(QChar(0x03C4)); // tau
+            case Qt::Key_F: return QString(QChar(0x03C6)); // phi
+            case Qt::Key_Y: return QString(QChar(0x03C8)); // psi
+            case Qt::Key_W: return QString(QChar(0x03C9)); // omega
+            default: break;
+        }
+    }
+    else if (modifiers == (Qt::ControlModifier | Qt::ShiftModifier))
+    {
+        // Ctrl+Shift+B (subscript) and Ctrl+Shift+P (superscript) are kept for the text format
+        switch (event->key())
+        {
+            case Qt::Key_G: return QString(QChar(0x0393)); // Gamma
+            case Qt::Key_D: return QString(QChar(0x0394)); // Delta
+            case Qt::Key_H: return QString(QChar(0x0397)); // Eta
+            case Qt::Key_Q: return QString(QChar(0x0398)); // Theta
+            case Qt::Key_L: return QString(QChar(0x039B)); // Lambda
+            case Qt::Key_S: return QString(QChar(0x03A3)); // Sigma
+            case Qt::Key_F: return QString(QChar(0x03A6)); // Phi
+            case Qt::Key_Y: return QString(QChar(0x03A8)); // Psi
+            case Qt::Key_W: return QString(QChar(0x03A9)); // Omega
+            default: break;
+        }
+    }
+
+    return QString();
+}
+
+bool UBGraphicsTextItem::sceneEvent(QEvent *event)
+{
+    // While writing, the Greek letters and the subscript / superscript shortcuts
+    // have priority over the shortcuts of the application (hide, undo...)
+    if (event->type() == QEvent::ShortcutOverride && (textInteractionFlags() & Qt::TextEditable))
+    {
+        QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
+        const bool formatShortcut = (keyEvent->modifiers() & ~Qt::KeypadModifier) == (Qt::ControlModifier | Qt::ShiftModifier)
+                && (keyEvent->key() == Qt::Key_B || keyEvent->key() == Qt::Key_P);
+
+        if (formatShortcut || !greekLetterFor(keyEvent).isEmpty())
+        {
+            event->accept();
+            return true;
+        }
+    }
+
+    return QGraphicsTextItem::sceneEvent(event);
 }
 
 

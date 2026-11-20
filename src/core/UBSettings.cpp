@@ -948,8 +948,11 @@ void UBSettings::setStylusPaletteVisible(bool visible)
 
 QColor UBSettings::textDefaultColor()
 {
-    QColor color(value("Board/TextDefaultColor", "#004F8B").toString());
-    return color.isValid() ? color : QColor("#004F8B");
+    // exactly the default (first) color of the pen on a light background
+    const QList<QColor> colors = penColors(false);
+    QColor color = colors.isEmpty() ? QColor("#004F8B") : colors.first();
+    color.setAlpha(255);
+    return color;
 }
 
 QString UBSettings::fontFamily()

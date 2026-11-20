@@ -1555,11 +1555,15 @@ void UBBoardView::mouseReleaseEvent (QMouseEvent *event)
 
                 UBGraphicsTextItemDelegate * textItemDelegate = dynamic_cast<UBGraphicsTextItemDelegate*>(textItem->Delegate());
 
-                // the new text zone takes 90% of the width of the page, centered on the page
+                // the new text zone starts at 20% of the width of the page, where it was drawn
+                // (kept inside the page), then grows with the text up to 90% of the page
                 Q_UNUSED(textItemDelegate);
                 const qreal pageWidth = scene()->nominalSize().width();
-                textItem->setTextWidth(0.9 * pageWidth);
-                textItem->setPos(-0.45 * pageWidth, textItem->pos().y());
+                const qreal startWidth = UBGraphicsTextItem::autoWidthMin * pageWidth;
+                const qreal right = 0.5 * UBGraphicsTextItem::autoWidthMax * pageWidth;
+                textItem->setTextWidth(startWidth);
+                textItem->setPos(qBound(-right, textItem->pos().x(), right - startWidth), textItem->pos().y());
+                textItem->setAutoWidth(true);
                 textItem->setFocus();
             }
         }

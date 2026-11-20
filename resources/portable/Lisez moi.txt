@@ -131,14 +131,49 @@ dessins à main levée restent intacts. « Annuler » retire la forme.
 8. ZONES DE TEXTE
 -----------------
 
-- Toute nouvelle zone de texte est en police Georgia, couleur #004F8B,
-  et occupe 90 % de la largeur de la page (centrée), à la hauteur où
-  on la trace.
+- Toute nouvelle zone de texte est en police Georgia, exactement dans
+  la couleur par défaut du crayon (#004F8B).
+- Largeur automatique : une nouvelle zone fait 20 % de la largeur de la
+  page, à l'endroit où on la trace. Elle s'élargit au fur et à mesure
+  de la frappe (en se décalant vers la gauche si besoin pour rester
+  dans la page) jusqu'à 90 % de la largeur de la page ; au-delà, le
+  texte revient automatiquement à la ligne.
+  Si l'on redimensionne la zone à la main, elle garde la largeur
+  choisie. Une zone rouverte plus tard garde sa largeur.
 - Le bouton couleur (la roue) propose les 8 couleurs du crayon en un
   clic, sur le texte sélectionné ou sur tout le texte. « Autre
   couleur... » donne accès à toutes les teintes.
 - Indice : Ctrl+Shift+B. Exposant : Ctrl+Shift+P. Le même raccourci
   revient au texte normal. Fonctionne aussi sur un texte sélectionné.
+- Lettres grecques au clavier :
+
+    Lettre  Raccourci        Majuscule  Raccourci
+    α       Ctrl+A
+    β       Ctrl+B
+    γ       Ctrl+G           Γ          Ctrl+Shift+G
+    δ       Ctrl+D           Δ          Ctrl+Shift+D
+    ε       Ctrl+E
+    ζ       Ctrl+Z
+    η       Ctrl+H           Η          Ctrl+Shift+H
+    θ       Ctrl+Q           Θ          Ctrl+Shift+Q
+    λ       Ctrl+L           Λ          Ctrl+Shift+L
+    μ       Ctrl+M
+    ν       Ctrl+N
+    ξ       Ctrl+X
+    π       Ctrl+P           (Ctrl+Shift+P reste l'exposant)
+    ρ       Ctrl+R
+    σ       Ctrl+S           Σ          Ctrl+Shift+S
+    τ       Ctrl+T
+    φ       Ctrl+F           Φ          Ctrl+Shift+F
+    ψ       Ctrl+Y           Ψ          Ctrl+Shift+Y
+    ω       Ctrl+W           Ω          Ctrl+Shift+W
+
+  Dans une zone de texte, ces raccourcis remplacent donc Ctrl+A (tout
+  sélectionner), Ctrl+Z (annuler), Ctrl+Y (rétablir), Ctrl+X (couper)
+  et Ctrl+B (gras). À la place : « Tout sélectionner » et « Couper »
+  au clic droit, « Annuler » dans la barre d'outils, le gras avec le
+  bouton F. Copier (Ctrl+C), coller (Ctrl+V), italique (Ctrl+I) et
+  souligné (Ctrl+U) fonctionnent toujours.
 - Correcteur d'orthographe français :
     - les mots inconnus sont soulignés d'une vague rouge, uniquement
       pendant l'écriture (le soulignement n'apparaît ni au tableau ni

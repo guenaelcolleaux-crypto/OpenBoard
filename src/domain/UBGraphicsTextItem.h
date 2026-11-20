@@ -71,6 +71,16 @@ class UBGraphicsTextItem : public QGraphicsTextItem, public UBItem, public UBRes
         void contentsChanged();
 
         virtual void resize(qreal w, qreal h);
+        virtual void resize(const QSizeF& pSize); // resize by the user (frame handles)
+
+        //! New text zones grow with the text, from 20% up to 90% of the page width, then wrap
+        void setAutoWidth(bool autoWidth) { mAutoWidth = autoWidth; adjustAutoWidth(); }
+        void adjustAutoWidth();
+        static constexpr qreal autoWidthMin = 0.20;
+        static constexpr qreal autoWidthMax = 0.90;
+
+        //! Greek letter for Ctrl+letter / Ctrl+Shift+letter, or an empty string
+        static QString greekLetterFor(const QKeyEvent* event);
 
         virtual QSizeF size() const;
 
@@ -121,6 +131,9 @@ class UBGraphicsTextItem : public QGraphicsTextItem, public UBItem, public UBRes
 
         virtual void keyPressEvent(QKeyEvent *event);
         virtual void keyReleaseEvent(QKeyEvent *event);
+
+        bool mAutoWidth = false;
+        virtual bool sceneEvent(QEvent *event);
 
         // French spell checking
         virtual void focusInEvent(QFocusEvent *event);
